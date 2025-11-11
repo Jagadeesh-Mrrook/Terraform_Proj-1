@@ -55,6 +55,20 @@ variable "availability_zone_private_subnet" {
   default     = "ap-south-1b"
 }
 
+#Security group variables can be defined here
+variable "ingress_ports" {
+  description = "values for ingress ports in security group"
+  type = list(string)
+  default = [ 80, 22 ]
+  
+}
+
+variable "egress_ports" {
+  description = "values for egress ports in security group"
+  type = list(string)
+  default = [ 0 ]
+}
+
 #Nacl ssh ingress rule variables
 variable "nacl_ssh_rule_number" {
   description = "The rule number for SSH ingress in the NACL"
@@ -99,48 +113,62 @@ variable "nacl_ssh_to_port" {
 }
 
 #nacl egress rule variables
+variable "nacl_rules" {
+  description = "all nacl rules egress and ingress"
+  type = map(object({
+    rule_number : number
+    egress      : bool
+    protocol    : string
+    rule_action : string
+    cidr_block  : string
+    from_port   : number
+    to_port     : number
+  }))  
 
-variable "nacl_egress_rule_number" {
-  description = "The rule number for egress rule in the NACL"
-  type        = number
-  default     = 200
+  default = {
+    "ssh_ingress" = {
+      rule_number = 100
+      egress      = false
+      protocol    = "tcp"
+      rule_action = "allow"
+      cidr_block  = "0.0.0.0/0"
+      from_port   = 22
+      to_port     = 22
+      
+    }
+
+    http_ingress = {
+      rule_number = 110
+      egress      = false
+      protocol    = "tcp"
+      rule_action = "allow"
+      cidr_block  = "0.0.0.0/10"
+      from_port   = 80
+      to_port     = 80
+    }
+
+    all_egress = {
+      rule_number = 200
+      egress      = true
+      protocol    = "-1"
+      rule_action = "allow"
+      cidr_block  = "0.0.0.0/0"
+      from_port   = 0
+      to_port     = 0
+    }
+  }
 }
 
-variable "nacl_egress" {
-  description = "enter true or false to set egress or ingress for egress rule in NACL"
+
+#ec2 instance variables can be defined here
+variable "instance_type" {
+  description = "The instance type for the EC2 instance"
+  type        = string
+  default     = "t2.micro"
+}
+
+variable "associate_public_ip_address" {
+  description = "Whether to associate a public IP address with the EC2 instance"
   type        = bool
   default     = true
 }
-
-variable "nacl_egress_protocol" {
-  description = "The protocol number for egress rule in NACL"
-  type        = string
-  default     = "-1"
-}
-
-variable "nacl_egress_rule_action" {
-  description = "The rule action for egress rule in NACL"
-  type        = string
-  default     = "allow"
-}
-
-variable "nacl_egress_cidr_block" {
-  description = "The CIDR block for egress rule in NACL"
-  type        = string
-  default     = "0.0.0.0/0"
-}
-
-variable "nacl_egress_from_port" {
-  description = "The from port for egress rule in NACL"
-  type        = number
-  default     = 22
-}
-
-variable "nacl_egress_to_port" {
-  description = "The to port for egress rule in NACL"
-  type        = number
-  default     = 22
-}
-
-
-
